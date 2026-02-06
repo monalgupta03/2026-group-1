@@ -1,4 +1,4 @@
-***List Of Games That Inspired Us***
+# List Of Games That Inspired Us
 
 Motherload
 Aqua Grabber
