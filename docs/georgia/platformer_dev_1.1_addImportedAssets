@@ -1,3 +1,18 @@
+/*
+========================================
+VERSION: 1.1
+SYSTEM: Player / Movement / Physics
+AUTHOR: Georgia Sweeny
+DESCRIPTION:
+- Basic implementation of player movement WAD (jump, left/right)
+- Physics for jump and basic collisions for top of platforms and ground
+========================================
+NOTES:
+- Added imported image
+- Added preload() to stop delay in assets loading to screen
+========================================
+*/
+
 //---global---//
 
 //game state
