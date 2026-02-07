@@ -1,7 +1,21 @@
-***Version 2.3***
+# Version 2.3
 
-**Aims:**
-Modular Engine Architecture
+**IMPORTANT:**
+
+This project uses ES modules!
+
+You must:
+
+- load sketch.js with type="module" in index.html:
+
+- run the project via a local server (not file://)
+
+*FILE UPDATED - index.html now includes:* <script type="module" src="sketch.js"></script>
+
+
+
+## Aim:
+**Refactor to Modular Engine Architecture**
   - the core “engine” is responsible for the game loop, physics, rendering pipeline, input management, etc.
   - everything else — like player, torch, power — are plug-in modules that the engine will call each frame
  
@@ -18,25 +32,25 @@ Phases are enforced — *no messy interdependencies*
 
 Debugging is easier — *engine shouldn’t break because a module fails*
 
-**Principles**
-CREATE OWN LIBRARIES
+## Working Principles
+**CREATE OWN LIBRARIES**
 Create a library for time (systemClock.js)
 Wrap it control it and mock it for tests to fast forward times 
 
-INJECT CODE INTO ENGINE
+**INJECT CODE INTO ENGINE**
 Do not use global data if possible (causes issues with testing, bugs etc.)
 Inject code into engine from different files (like deltaTime)
 It is now defined and easily testable
 Core engine just has to read data, only care about its own logic
 
-SEPARATE THESE INTO FILES RATHER THAN HEADERS IN ENGINE
+**SEPARATE THESE INTO FILES RATHER THAN HEADERS IN ENGINE**
 Eg. Player, torch, physics, resources, game economy, score
 	  resource systems (use/gain)
 This can be injected later
 Once tests and basic implementation done the team can work on making it
 more sophisticated/extending feature later
 
-GOOD TESTS
+**WRITE GOOD TESTS**
 A test looks like very simple fragment of code  (no more than 10 ines)
 - One line to setup
 - One line to call into function
@@ -48,6 +62,6 @@ These tests should survive any code changes
 *Game should load all phases (gameplay - render)
 When jump should land on the ground (gravity test)*
 
-BAD TESTS
+**BAD TESTS**
 *Something that does -> Go to file pull in config file, change files to be this, check values, change values etc.*
-Messy, overcomplicated, written after not before
+Messy, overcomplicated, written after not before, checking more than one thing - all lead to ineffect tests.
