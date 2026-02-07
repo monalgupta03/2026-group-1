@@ -1,16 +1,19 @@
 # Version 2.3
 
-**IMPORTANT:**
+## IMPORTANT:
 
-This project uses ES modules!
+**This project uses ES modules so must be run via a local server!**
 
-You must:
+WARNING: Code cannot be run in p5.js Web Editor  - does NOT support ES module imports
+
+*FILE UPDATED - index.html now includes:* <script type="module" src="sketch.js"></script>
+
+
+**You must:**
 
 - load sketch.js with type="module" in index.html:
 
-- run the project via a local server (not file://)
-
-*FILE UPDATED - index.html now includes:* <script type="module" src="sketch.js"></script>
+- run the project via a local server (not file://), can't use p5.js web editor
 
 
 
