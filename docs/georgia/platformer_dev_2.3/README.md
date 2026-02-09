@@ -1,5 +1,7 @@
 # Version 2.3
 
+** NOTE: Refactor to modular system currently incomplete **
+
 ## IMPORTANT:
 
 **This project uses ES modules so must be run via a local server!**
