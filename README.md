@@ -1,6 +1,10 @@
 # 2026-group-1
 2026 COMSM0166 group 1
 
+### Group Kanban Board
+
+[Kanban hosted on Notion](https://www.notion.so/2eef3902b1f0803590afe2a31c236dab?v=2eef3902b1f080509478000c3aa3a4a6&source=copy_link)
+
 # COMSM0166 Project Template
 A project template for the Software Engineering Discipline and Practice module (COMSM0166).
 
@@ -13,7 +17,7 @@ You will be developing your game using [P5.js](https://p5js.org) a javascript li
 - [P5.js tutorials](https://p5js.org/tutorials/) 
 - [Coding Train P5.js](https://thecodingtrain.com/tracks/code-programming-with-p5-js) course - go here for enthusiastic video tutorials from Dan Shiffman (recommended!)
 
-## Your Game (change to title of your game)
+## Echolocation (working title)
 
 STRAPLINE. Add an exciting one sentence description of your game here.
 
