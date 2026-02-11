@@ -29,7 +29,7 @@ VIDEO. Include a demo video of your game here (you don't have to wait until the 
 
 ## Group 1
 
-![Group1](https://github.com/user-attachments/assets/d30fdda5-4574-4135-bf5f-bcf2f85b355a)
+![Group1](/docs/images/Group1.jpeg)
 
 |Name|Email|Role|
 |:-|:-|:-|
