@@ -86,8 +86,14 @@ This prevents:
 |
 ├─ /entities              # Optional: reusable classes
 │   ├─ player.js          # Player class / data structure
-|   ├─ torch.js           # Torch class
-│   └─ room.js            # Room objects
+|   └─ torch.js           # Torch class
+|
+│                
+├─ /data
+│   └─ rooms              # Room objects
+│       ├─ room1.js       # (or room1.json)
+│       ├─ room2.js
+│       └─ room3.js
 |          
 ├─ /assets                # Images, sprites, sounds
 │   ├─/images
