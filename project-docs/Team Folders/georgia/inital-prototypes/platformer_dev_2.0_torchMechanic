@@ -1,0 +1,395 @@
+/*
+========================================
+VERSION: 2.0
+SYSTEM: Torch / POWER / UI
+AUTHOR: Georgia Sweeny
+DESCRIPTION:
+- Player is able to toggle torch on/off
+- Toggling torch enables a mask on canvas "darknessLayer" which
+  overlays the main canvas creating effect
+- Power added which drains when torch is on
+- Torch flickers when power is low, switches off when empty
+
+RULES:
+- No drawing in update functions
+- No state changes in draw functions
+========================================
+NOTES:
+- Restructured code to engine-style
+
+- deltaTime = time since last frame (ms)
+    - / 1000 converts it to seconds
+    - deltaTime makes behavior independent of FPS
+    
+    Power drain when the torch is on follows this pattern:
+    ***value -= rate * deltaTimeInSeconds;*** 
+
+    - deltaTime / 1000 = elapsed (seconds)
+    - Subtracting that every frame adds up to 1 unit per second
+    ***player.power -= deltaTime / 1000***
+========================================
+*/
+
+//======================================
+// GLOBAL DATA
+//======================================
+
+//---DEFAULT GAME STATE---//
+var state = 0; //tracks game state to run
+
+//---GRAVITY---//
+var fallSpeed = 2;
+var minHeight = 429; //height of ground
+
+//---PLAYER---//
+var player = {
+  //coordinates
+  x: 400,
+  y: 10,
+  //dimensions
+  w: 30,
+  h: 70,
+  
+  //vertical velocity
+  vy: 2,
+  //jump height ≈ (jumpPower²) / (2 * fallSpeed)
+  jumpPower: 25, //clears 156 pixels by 12th frame then falls
+  jumpCounter: 0,
+  
+  //resource capacities
+  maxPower: 100,
+  
+  //resource states
+  power: 100,
+  
+  //torch
+  torchRadius: 200,
+  flickerTimer: 0,
+  
+  //player states
+  torchOn: false,
+  onGround: false
+};
+
+//---PLATFORMS---//
+var platforms = [
+  { x: 200, y: 400, w: 200, h: 32 },
+  //this block is 144px/max jump height above 1st
+  { x: 350, y: 256, w: 32, h: 32 }, 
+  { x: 500, y: 156, w: 32, h: 32 }
+];
+
+//---IMPORTED ASSETS---//
+let forrest;
+
+//---GRAPHICS (CANVASES)---//
+let darknessLayer;
+
+//======================================
+// PRELOAD ASSETS
+//======================================
+
+function preload() {
+  forrest = loadImage('assets/forrest.png');
+}
+
+//======================================
+// MAIN CANVAS SETUP & GRAPHICS
+//======================================
+
+function setup() {
+  createCanvas(800, 512); //screen size
+  rectMode(CENTER);
+  textSize(20);
+  textAlign(LEFT);
+  
+  darknessLayer = createGraphics(width, height);
+}
+
+//======================================
+// DRAW DISPATCHER
+//======================================
+
+function draw() {
+  switch (state) {
+    case 0:
+      game();
+      break;
+    case 1:
+      menu();
+      break;
+    case 3:
+      paused();
+      break;
+  }
+}
+
+//======================================
+// GAME STATES & FUNCTIONS
+//======================================
+
+//---STATE 0: GAME---//
+function game() {
+  //UPDATE
+  applyGravity();
+  handleMovementInput();
+  updateTorch();
+  
+  //DRAW
+  drawBackground();
+  drawPlatforms();
+  drawPlayer();
+  drawTorchMask();
+  drawUI();
+}
+
+//---STATE 1: MENU---//
+function menu() {
+  let temp;
+}
+
+//---STATE 3: PAUSED---//
+function paused() {
+  let temp;
+}
+
+//======================================
+// UPDATE LOGIC (GAME SYSTEMS)
+//======================================
+// jump, torch, power, timers, etc.
+
+//---MOVEMENT---//
+
+//---JUMP---//
+function handleJump() {
+  if((key === 'w' || key === 'W') && player.onGround) {
+    player.vy = -player.jumpPower;
+    player.jumpCounter = 0;
+    player.onGround = false;
+  }
+}
+
+//---TORCH---//
+function tryToggleTorch() {
+  //try to turning ON
+  if (!player.torchOn) {
+    if (player.power > 0) {
+      player.torchOn = true;
+      player.flickerTimer = 0; //torch OFF -> reset flickerTimer
+    }
+    //do nothing (no power), 
+  }
+  //turning OFF (always allowed)
+  else {
+    player.torchOn = false;
+    player.flickerTimer = 0;
+  }
+}
+
+function updateTorch() {
+  //drain power when ON
+  if (player.torchOn) {
+    player.power -= deltaTime / 1000; //value -= rate * deltaTimeInSeconds;
+    player.flickerTimer += deltaTime; 
+    
+    //torch off when power 0
+    if (player.power <= 0) {
+      player.power = 0;
+      player.torchOn = false;
+      player.flickerTimer = 0;
+    }
+    //clamp power between 0-maxPower
+    player.power = constrain(player.power, 0, player.maxPower);
+  }
+}
+
+function handleTorchInput() {
+  if (key === 'l' || key === 'L') {
+    tryToggleTorch();
+  }
+}
+
+//---POWER---//
+function isPowerLow() {
+  //15% power
+  return player.power <= player.maxPower * 0.15;
+}
+
+//======================================
+// PHYSICS (MOVEMENT & COLLISION)
+//======================================
+// gravity, velocity, landing checks
+
+//---VERTICAL LANDING COLLISION---//
+function isLandingOnPlatform(player, platform) {
+  return (
+    player.x + player.w / 2 > platform.x - platform.w / 2 &&
+    player.x - player.w / 2 < platform.x + platform.w / 2 &&
+    player.y + player.h / 2 >= platform.y - platform.h / 2 &&
+    player.y + player.h / 2 <= platform.y - platform.h / 2 + player.vy &&
+    player.vy > 0
+  )
+}
+
+//---GRAVITY---//
+function applyGravity(){
+  player.onGround = false;
+  
+  //apply gravity
+  player.vy += fallSpeed;
+  player.y += player.vy;
+
+  //ground collision
+  if (player.y >= minHeight) {
+    player.y = minHeight;
+    player.vy = 0;
+    player.onGround = true;
+  }
+  
+  //platform collisions
+  for (let p of platforms) {
+    if (isLandingOnPlatform(player, p)) {
+      player.y = p.y - p.h / 2 - player.h / 2;
+      player.vy = 0;
+      player.onGround = true;
+      break;
+    }
+  }
+}
+
+//======================================
+// DRAW HELPERS
+//======================================
+
+//---BACKGROUND---//
+function drawBackground() {
+  //appearence
+  /* sky blue - should never be visable as bg
+  image is preloaded, prevents delay. */
+  background(150, 230, 240);
+  image(forrest, 0, 0, width, height) //BG image
+  //grass
+  stroke(60, 100, 115);
+  fill(90, 130, 145);
+  rect(width/2, 512, width, 96);
+  //window frame
+  noFill();
+  stroke(0);
+  strokeWeight(15);
+  rect(width/2, height/2, width, height);
+}
+
+//---PLATFORMS---//
+function drawPlatforms(){
+  //draw platforms
+  stroke(130, 100, 60);
+  strokeWeight(2);
+  fill(160, 130, 90);
+  for (let i = 0; i < platforms.length; i++) {
+    rect(platforms[i].x, platforms[i].y, 
+         platforms[i].w, platforms[i].h)
+  }
+}
+
+//---PLAYER---//
+function drawPlayer(){
+  //draw player
+  stroke(150, 0, 25);
+  fill(225, 0, 50); //red
+  rect(player.x, player.y, player.w, player.h);
+}
+
+//---DARKNESS LAYER---//
+function drawDarknessBase() {
+  darknessLayer.clear();
+  darknessLayer.push(); //draw mode changes, push()/pop() stop data leaks
+  darknessLayer.rectMode(CORNER);
+  darknessLayer.noStroke();
+  darknessLayer.fill(0, 255); // darkness strength
+  darknessLayer.rect(0, 0, darknessLayer.width, darknessLayer.height);
+  darknessLayer.pop();
+}
+
+//---TORCH---//
+function applyTorchLight() {
+  
+  darknessLayer.push(); //function changes draw modes
+  darknessLayer.erase(); //switches brush to alpha-removal mode
+  darknessLayer.circle(player.x, player.y, player.torchRadius);
+  darknessLayer.noErase();
+  darknessLayer.pop();
+}
+
+function drawTorchMask() {
+  drawDarknessBase();
+
+  if (player.torchOn) {
+    let visible = true;
+    // flicker only when power is low
+    if (isPowerLow()) {
+      visible = floor(player.flickerTimer / 120) % 2 === 0; //FPS-safe
+    }
+
+    if (visible) {
+      applyTorchLight();
+    }
+  }
+  // draw darkness overlay
+  image(darknessLayer, 0, 0);
+}
+
+//---UI---//
+function drawInstructions() {
+  //controls
+  stroke(0);
+  strokeWeight(2);
+  fill(255);
+  text('A/D: Left/Right\nW: Jump\nL: Toggle Torch', 16, 32);
+  describe('The text "A/D: Left/Right, W: Jump, L: Toggle Torch" written in white');
+  
+  //instructions
+  line(155, 250, 155, 375)
+  strokeWeight(1);
+  fill(255, 255, 255);
+  text('Max jump height ->', 150, 240);
+  text('<- GOAL\nThis one is tricky ;)', 550, 140);
+}
+
+function drawPowerMeter() {
+  let powerPercentage = (player.power / player.maxPower) * 100;
+  powerPercentage = Math.round(powerPercentage); //rounds to integer
+  
+  push();
+  textAlign(RIGHT);
+  fill(0, 200, 0); //green
+  text(`Power: ${powerPercentage}%`, 780, 32);
+  pop();
+}
+
+function drawUI() {
+  drawInstructions();
+  drawPowerMeter();
+}
+
+//======================================
+// INPUT EVENTS
+//======================================
+
+//---playerControls---//
+
+//events
+function keyPressed() {
+  handleJump();
+  handleTorchInput();
+}
+
+//states
+function handleMovementInput(){
+  //movement: left/right
+  if(keyIsDown(65)) { 
+    player.x -= 5; //A: move left
+  }
+  if(keyIsDown(68)) {
+    player.x += 5; //D: move right
+  }
+}

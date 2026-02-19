@@ -1,0 +1,182 @@
+/*
+========================================
+VERSION: 1.1
+SYSTEM: Player / Movement / Physics
+AUTHOR: Georgia Sweeny
+DESCRIPTION:
+- Basic implementation of player movement WAD (jump, left/right)
+- Physics for jump and basic collisions for top of platforms and ground
+========================================
+NOTES:
+- Added imported image
+- Added preload() to stop delay in assets loading to screen
+========================================
+*/
+
+//---global---//
+
+//game state
+var state = 0; //tracks game state to run
+
+//gravity 
+var fallSpeed = 2;
+var minHeight = 429; //height of ground
+
+//player (object)
+var player = {
+  //cooridnates
+  x: 400,
+  y: 10,
+  //dimensions
+  w: 30,
+  h: 70,
+  //vertical velocity
+  vy: 2,
+  //jumpHeight ≈ (jumpPower²) / (2 * fallSpeed)
+  jumpPower: 25, //clears 144 pixels by 12th frame then falls
+  
+  onGround: false
+};
+
+//---assets---//
+let forrest;
+
+//platforms (objects)
+var platforms = [
+  { x: 200, y: 400, w: 200, h: 32 },
+  //this block is 144px/max jump height above 1st
+  { x: 350, y: 256, w: 32, h: 32 }, 
+  { x: 505, y: 156, w: 32, h: 32 }
+];
+
+//---preload assets---//
+function preload() {
+  forrest = loadImage('assets/forrest.png');
+}
+
+//---setup---//
+function setup() {
+  createCanvas(800, 512); //screen size
+  rectMode(CENTER);
+  textSize(20);
+  textAlign(LEFT);
+}
+
+//---draw---//
+function draw() {
+  //call functions
+  applyGravity();
+  keyIsDownMovement();
+  
+  //game state
+  if(state === 0){
+    game();
+  }
+  
+}
+
+//---game: state 0---//
+function game() {
+  
+  //appearence
+  background(150, 230, 240); //sky blue - this should now never be visable as bg image is preloaded
+  image(forrest, 0, 0, width, height) //BG image
+  //grass
+  stroke(60, 100, 115);
+  fill(90, 130, 145);
+  rect(width/2, 512, width, 96);
+  //window frame
+  noFill();
+  stroke(0);
+  strokeWeight(15);
+  rect(width/2, height/2, width, height);
+  
+  //instructions
+  strokeWeight(2);
+  fill(255);
+  text('A/D: Left/Right\nW: Jump', 16, 32);
+  describe('The text "A/D: Left/Right W: Jump" written in white');
+  
+  stroke(0);
+  line(155, 250, 155, 375)
+  strokeWeight(1);
+  fill(255, 255, 255);
+  text('Max jump height ->', 150, 240);
+  
+  text('<- GOAL\nThis one is tricky ;)', 550, 140);
+  
+  //draw platforms
+  stroke(130, 100, 60);
+  strokeWeight(5);
+  fill(160, 130, 90);
+  for (let i = 0; i < platforms.length; i++) {
+    rect(platforms[i].x, platforms[i].y, 
+         platforms[i].w, platforms[i].h)
+  }
+  
+  //draw player
+  stroke(150, 0, 25);
+  fill(225, 0, 50); //red
+  rect(player.x, player.y, player.w, player.h);
+}
+
+//---physics---//
+
+//collision check
+function isLandingOnPlatform(player, platform) {
+  return (
+    player.x + player.w / 2 > platform.x - platform.w / 2 &&
+    player.x - player.w / 2 < platform.x + platform.w / 2 &&
+    player.y + player.h / 2 >= platform.y - platform.h / 2 &&
+    player.y + player.h / 2 <= platform.y - platform.h / 2 + player.vy &&
+    player.vy > 0
+  );
+}
+
+//gravity
+function applyGravity(){
+  player.onGround = false;
+  
+  //apply gravity
+  player.vy += fallSpeed;
+  player.y += player.vy;
+
+  // ground collision
+  if (player.y >= minHeight) {
+    player.y = minHeight;
+    player.vy = 0;
+    player.onGround = true;
+  }
+  
+  //platform collisions
+  for (let p of platforms) {
+    if (isLandingOnPlatform(player, p)) {
+      player.y = p.y - p.h / 2 - player.h / 2;
+      player.vy = 0;
+      player.onGround = true;
+      break;
+    }
+  }
+}
+
+//---playerControls---//
+
+//movement: jump
+function keyPressed() {
+  if((key === 'w' || key === 'W') && player.onGround) {
+    player.vy = -player.jumpPower;
+    player.jumpCounter = 0;
+    player.onGround = false;
+  }
+}
+
+//movement: left/right
+function keyIsDownMovement(){
+  
+  if(keyIsDown(65)) { 
+    player.x -= 5; //A: move left
+  }
+  if(keyIsDown(68)) {
+    player.x += 5; //D: move right
+  }
+}
